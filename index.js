@@ -43,17 +43,17 @@ const learn = (input, subject) => {
 
     bayes_classifier.learn(input, subject);
 
-    natural_classifier.addDocument(input, subject);
-    natural_classifier.train();
+    //natural_classifier.addDocument(input, subject);
+    //natural_classifier.train();
 };
 
 const classify = (input) => {
     input = input.toLowerCase();
 
     const b = bayes_classifier.categorize(input);
-    const n = natural_classifier.classify(input);
-    console.log(natural_classifier.getClassifications(input));
-   return `b[${b}] === n[${n}]`
+    //const n = natural_classifier.classify(input);
+    //console.log(natural_classifier.getClassifications(input));
+    return b;
 };
 
 
@@ -70,7 +70,7 @@ console.time('training');
 
 data.response.docs.forEach(doc => {
 
-    const {  section_name, lead_paragraph, snippet, abstract } = doc;
+    const {  section_name, lead_paragraph, snippet, abstract, headline } = doc;
 
     if (!section_name || [
         'Health',
@@ -83,6 +83,7 @@ data.response.docs.forEach(doc => {
         'Books'
     ].indexOf(section_name) === -1) return;
 
+    learn(headline.main, section_name);
     learn(lead_paragraph, section_name);
     learn(snippet, section_name);
     learn(abstract, section_name);
@@ -91,15 +92,24 @@ data.response.docs.forEach(doc => {
 
         let subjectCombination = section_name;
 
-        if (it.name != 'subject')
-            subjectCombination = `${it.name}`
-        else
-            subjectCombination = `${it.value}` // ${section_name}
+        if (it.name != 'subject') {
+            subjectCombination = `${it.name} -> ${section_name}`;
 
-        learn(it.value, subjectCombination);
-        learn(lead_paragraph, subjectCombination);
-        learn(snippet, subjectCombination);
-        learn(abstract, subjectCombination);
+            learn(it.value, subjectCombination);
+            learn(lead_paragraph, subjectCombination);
+            learn(snippet, subjectCombination);
+            learn(abstract, subjectCombination);
+            learn(headline.main, subjectCombination);
+        } else {
+            subjectCombination = `${it.value} -> ${section_name}` // 
+
+            learn(it.value, subjectCombination);
+            learn(lead_paragraph, subjectCombination);
+            learn(snippet, subjectCombination);
+            learn(abstract, subjectCombination);
+            learn(headline.main, subjectCombination);
+        }
+
 
     }) : void 0;
 
